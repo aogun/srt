@@ -65,6 +65,7 @@ modified by
 #include "common.h"
 #include "netinet_any.h"
 #include "logging.h"
+#include "packet.h"
 #include "threadname.h"
 
 #include <srt_compat.h> // SysStrError
@@ -547,6 +548,7 @@ std::string MessageTypeStr(UDTMessageType mt, uint32_t extt)
         "EXT:kmrsp",
         "EXT:sid",
         "EXT:congctl",
+        "EXT:filter",
         "EXT:group"
     };
 
@@ -652,6 +654,12 @@ bool SrtParseConfig(string s, SrtConfig& w_config)
     return true;
 }
 
+uint64_t PacketMetric::fullBytes()
+{
+    static const int PKT_HDR_SIZE = CPacket::HDR_SIZE + CPacket::UDP_HDR_SIZE;
+    return bytes + pkts * PKT_HDR_SIZE;
+}
+
 
 // Some logging imps
 #if ENABLE_LOGGING
@@ -689,6 +697,7 @@ std::string SockStatusStr(SRT_SOCKSTATUS s)
     return names.names[int(s)-1];
 }
 
+#if ENABLE_EXPERIMENTAL_BONDING
 std::string MemberStatusStr(SRT_MEMBERSTATUS s)
 {
     if (int(s) < int(SRT_GST_PENDING) || int(s) > int(SRT_GST_BROKEN))
@@ -711,6 +720,7 @@ std::string MemberStatusStr(SRT_MEMBERSTATUS s)
 
     return names.names[int(s)];
 }
+#endif
 
 LogDispatcher::Proxy::Proxy(LogDispatcher& guy) : that(guy), that_enabled(that.CheckEnabled())
 {
